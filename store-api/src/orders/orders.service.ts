@@ -5,12 +5,14 @@ import { Connection, Repository, In } from 'typeorm';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { Order, OrderStatus } from './entities/order.entity';
+import { PaymentService } from './payment/payment.service';
 
 @Injectable()
 export class OrdersService {
   constructor(
     @InjectRepository(Order) private orderRepo: Repository<Order>,
     @InjectRepository(Product) private productRepo: Repository<Product>,
+    private paymentService: PaymentService,
     private connection: Connection,
   ) {}
 
@@ -34,7 +36,7 @@ export class OrdersService {
 
     try {
       const newOrder = await queryRunner.manager.save(order);
-      /*
+      
       await this.paymentService.payment({
         creditCard: {
           name: order.credit_card.name,
@@ -47,7 +49,7 @@ export class OrdersService {
         store: process.env.STORE_NAME,
         description: `Produtos: ${products.map((p) => p.name).join(', ')}`,
       });
-      */
+      
       await queryRunner.manager.update(
         Order,
         { id: newOrder.id },
