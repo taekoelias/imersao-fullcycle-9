@@ -16,7 +16,6 @@ export class OrdersService {
 
   async create(createOrderDto: CreateOrderDto) {
     const order = this.orderRepo.create(createOrderDto);
-
     const products = await this.productRepo.find({
       where: {
         id: In(order.items.map((item) => item.product_id)),

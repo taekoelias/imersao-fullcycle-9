@@ -1,8 +1,12 @@
 import { Typography, ListItem, ListItemAvatar, Avatar, ListItemText, Grid, TextField, Box, Button } from "@material-ui/core";
 import axios from "axios";
 import { GetServerSideProps, NextPage } from "next";
-import { Head } from "next/document";
+import Head from "next/head";
+import router from "next/router";
+import { useForm } from "react-hook-form";
 import { http } from "../../../libs/http";
+import { CreditCard } from "../../../model/credit-card";
+import { Order } from "../../../model/order";
 import { Product } from "../../../model/product";
 
 interface OrderPageProps {
@@ -10,6 +14,21 @@ interface OrderPageProps {
 }
 
 const OrderPage: NextPage<OrderPageProps> = ({ product }) => {
+  
+  const {register, handleSubmit, setValue} = useForm<CreditCard>()
+  
+  const onSubmit = async (data: CreditCard) => {
+    try {
+      const { data: order } = await http.post<Order>("orders", {
+        credit_card: {...data, expiration_month: parseInt(data.expiration_month.toString()), expiration_year: parseInt(data.expiration_year.toString())},
+        items: [{ product_id: product.id, quantity: 1 }],
+      });
+      router.push(`/orders/${order.id}`);
+    } catch (e) {
+      console.error(axios.isAxiosError(e) ? e.response?.data : e);
+    }
+  }
+
   return (
     <div>
       <Head>
@@ -30,10 +49,14 @@ const OrderPage: NextPage<OrderPageProps> = ({ product }) => {
       <Typography component="h2" variant="h6" gutterBottom>
         Pay with credit card
       </Typography>
-      <form >
+      <form onSubmit={handleSubmit(onSubmit)}>
         <Grid container spacing={3}>
           <Grid item xs={12} md={6}>
-            <TextField required label="Name" fullWidth />
+            <TextField 
+              required 
+              label="Name" 
+              fullWidth 
+              {...register("name")}/>
           </Grid>
           <Grid item xs={12} md={6}>
             <TextField
@@ -41,6 +64,7 @@ const OrderPage: NextPage<OrderPageProps> = ({ product }) => {
               required
               fullWidth
               inputProps={{ maxLength: 16 }}
+              {...register("number")}
             />
           </Grid>
           <Grid item xs={12} md={6}>
@@ -49,6 +73,7 @@ const OrderPage: NextPage<OrderPageProps> = ({ product }) => {
               type="number"
               label="CVV"
               fullWidth
+              {...register("cvv")}
             />
           </Grid>
           <Grid item xs={12} md={6}>
@@ -59,6 +84,10 @@ const OrderPage: NextPage<OrderPageProps> = ({ product }) => {
                   type="number"
                   label="Expiration month"
                   fullWidth
+                  {...register("expiration_month")}
+                  onChange={(e) =>
+                    setValue("expiration_month", parseInt(e.target.value))
+                  }
                 />
               </Grid>
               <Grid item xs={6}>
@@ -67,12 +96,16 @@ const OrderPage: NextPage<OrderPageProps> = ({ product }) => {
                   type="number"
                   label="Expiration year"
                   fullWidth
+                  {...register("expiration_year")}
+                  onChange={(e) =>
+                    setValue("expiration_year", parseInt(e.target.value))
+                  }
                 />
               </Grid>
             </Grid>
           </Grid>
         </Grid>
-        <Box marginTop={1}>
+        <Box marginTop={3}>
           <Button type="submit" variant="contained" color="primary" fullWidth>
             Pay
           </Button>

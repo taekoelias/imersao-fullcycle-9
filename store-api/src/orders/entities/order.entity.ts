@@ -7,6 +7,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
+import { CreditCard } from './credit-card.embbeded';
 import { OrderItem } from './order-item.entity';
 
 export enum OrderStatus {
@@ -24,10 +25,10 @@ export class Order {
 
   @CreateDateColumn({ type: 'timestamp' })
   created_at: Date;
-/*
+
   @Column(() => CreditCard, { prefix: '' })
   credit_card: CreditCard;
-*/
+
   @OneToMany(() => OrderItem, (item) => item.order, { cascade: true })
   items: OrderItem[];
 
